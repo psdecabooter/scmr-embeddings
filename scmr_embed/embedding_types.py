@@ -33,7 +33,7 @@ class QASM:
 
 
 def parse_qasm(qasm_path: str) -> QASM:
-    qubit_layers: dict[int, int] = {}
+    qubit_next_layer: dict[int, int] = {}
     layers: list[Layer] = []
     with open(qasm_path, "r") as qf:
         for line in qf:
@@ -49,15 +49,17 @@ def parse_qasm(qasm_path: str) -> QASM:
                 gate = Gate(type=GateType.T, data=((int(t_match.group(2)), -1)))
             if gate is None:
                 continue
-            gate_qubits = filter(lambda x: x != -1, gate.data)
+            gate_qubits = list(filter(lambda x: x != -1, gate.data))
             max_layer = 0
             for qubit in gate_qubits:
-                if qubit not in qubit_layers:
-                    qubit_layers[qubit] = 0
-                max_layer = max(max_layer, qubit_layers[qubit])
-                qubit_layers[qubit] += 1
+                if qubit not in qubit_next_layer:
+                    qubit_next_layer[qubit] = 0
+                max_layer = max(max_layer, qubit_next_layer[qubit])
+            # Updating qubit layers must be done seperately for an accurate max_layer
+            for qubit in gate_qubits:
+                qubit_next_layer[qubit] = max_layer + 1
             # If the gate needs to start a new layer
             if len(layers) == max_layer:
                 layers.append([])
             layers[max_layer].append(gate)
-    return QASM(layers=layers, qubits=set(qubit_layers.keys()))
+    return QASM(layers=layers, qubits=set(qubit_next_layer.keys()))
