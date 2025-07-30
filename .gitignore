@@ -10,3 +10,4 @@ wheels/
 .venv
 
 out.csv
+bench_suite/

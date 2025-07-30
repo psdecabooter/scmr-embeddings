@@ -35,18 +35,38 @@ class QASM:
 def parse_qasm(qasm_path: str) -> QASM:
     qubit_next_layer: dict[int, int] = {}
     layers: list[Layer] = []
+    offset = 0
+    register_groups: dict[str, int] = {}
     with open(qasm_path, "r") as qf:
         for line in qf:
+            reg_match = re.match(r"(qreg)\s+([a-zA-Z_][a-zA-Z0-9_]*)\[(\d+)\];", line)
+            if reg_match:
+                register_groups[reg_match.group(2)] = offset
+                offset += int(reg_match.group(3))
+                continue
             gate: Gate | None = None
-            cx_match = re.match(r"(cx)\s+q\[(\d+)\],\s*q\[(\d+)\];", line)
-            t_match = re.match(r"(t|tdg)\s+q\[(\d+)\];", line)
+            cx_match = re.match(
+                rf"(cx)\s+({'|'.join(register_groups.keys())})\[(\d+)\],\s*({'|'.join(register_groups.keys())})\[(\d+)\];",
+                line,
+            )
+            t_match = re.match(
+                rf"(t|tdg)\s+({'|'.join(register_groups.keys())})\[(\d+)\];", line
+            )
             if cx_match:
                 gate = Gate(
                     type=GateType.CX,
-                    data=(int(cx_match.group(2)), int(cx_match.group(3))),
+                    data=(
+                        int(cx_match.group(3)) + register_groups[cx_match.group(2)],
+                        int(cx_match.group(5)) + register_groups[cx_match.group(4)],
+                    ),
                 )
             elif t_match:
-                gate = Gate(type=GateType.T, data=((int(t_match.group(2)), -1)))
+                gate = Gate(
+                    type=GateType.T,
+                    data=(
+                        (int(t_match.group(3)) + register_groups[t_match.group(2)], -1)
+                    ),
+                )
             if gate is None:
                 continue
             gate_qubits = list(filter(lambda x: x != -1, gate.data))

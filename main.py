@@ -57,6 +57,8 @@ def main():
         features_df = pd.DataFrame()
         features_df["file_name"] = [name]
         for feature, data in features.items():
+            if len(data) == 0:
+                data = [0]
             features_df[f"{feature.value}.mean"] = [np.mean(data)]
             features_df[f"{feature.value}.median"] = [np.median(data)]
             features_df[f"{feature.value}.std"] = [np.std(data)]

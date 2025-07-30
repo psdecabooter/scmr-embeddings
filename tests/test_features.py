@@ -4,8 +4,8 @@ import numpy as np
 from scmr_embed.embedding_types import parse_qasm, Features
 from scmr_embed.feature_extractor import FeatureExtractor
 
-TEST_QASM_PATH = "./tests/test_qasm.qasm"
-CHECK_FEATURES_PATH = "./tests/test_features.json"
+TEST_QASM_PATH = "./tests/test_qasm/test_qasm.qasm"
+CHECK_FEATURES_PATH = "./tests/test_qasm/test_features.json"
 
 
 def test_check_files():
