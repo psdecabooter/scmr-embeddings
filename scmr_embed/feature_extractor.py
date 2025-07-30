@@ -23,12 +23,17 @@ class FeatureExtractor:
                     continue
                 degrees[gate.data[0]].add(gate.data[1])
                 degrees[gate.data[1]].add(gate.data[0])
-        return np.array([len(interacts) for interacts in list(degrees.values())])
+        return np.array(
+            [
+                len(interacts) / (len(self.qasm.qubits) - 1)
+                for interacts in list(degrees.values())
+            ]
+        )
 
     def parallelism(self):
         layer_gates = []
         for layer in self.qasm.layers:
-            layer_gates.append(len(layer))
+            layer_gates.append(len(layer) / len(self.qasm.qubits))
         return np.array(layer_gates)
 
     def cx_parallelism(self):
@@ -36,6 +41,7 @@ class FeatureExtractor:
         for layer in self.qasm.layers:
             cx_layer_gates.append(
                 len(list(filter(lambda qubit: qubit.type is GateType.CX, layer)))
+                / len(self.qasm.qubits)
             )
         return np.array(cx_layer_gates)
 
@@ -44,6 +50,7 @@ class FeatureExtractor:
         for layer in self.qasm.layers:
             t_layer_gates.append(
                 len(list(filter(lambda qubit: qubit.type is GateType.T, layer)))
+                / len(self.qasm.qubits)
             )
         return np.array(t_layer_gates)
 
@@ -65,7 +72,7 @@ class FeatureExtractor:
                     time_between_t[qubit][-1] += 1
         return np.array(
             [
-                sum(v[:-1]) / len(v[:-1])
+                (sum(v[:-1]) / len(v[:-1])) / len(self.qasm.layers)
                 for _, v in list(time_between_t.items())
                 if len(v) > 1
             ]
@@ -84,7 +91,7 @@ class FeatureExtractor:
             # temp metrics
             cx_count = 0
             t_count = 0
-            layer_gates.append(len(layer))
+            layer_gates.append(len(layer) / len(self.qasm.qubits))
             t_qubits = set()
 
             for gate in layer:
@@ -98,8 +105,8 @@ class FeatureExtractor:
                     if qubit not in time_between_t:
                         time_between_t[qubit] = []
                     t_qubits.add(gate.data[0])
-            cx_layer_gates.append(cx_count)
-            t_layer_gates.append(t_count)
+            cx_layer_gates.append(cx_count / len(self.qasm.qubits))
+            t_layer_gates.append(t_count / len(self.qasm.qubits))
             cx_ratios.append(cx_count / len(layer))
             for qubit in list(time_between_t.keys()):
                 if qubit in t_qubits:
@@ -110,14 +117,17 @@ class FeatureExtractor:
         features = {
             Features.cx_layer_ratio: np.array(cx_ratios),
             Features.qubit_degrees: np.array(
-                [len(interacts) for interacts in list(qubit_degrees.values())]
+                [
+                    len(interacts) / (len(self.qasm.qubits) - 1)
+                    for interacts in list(qubit_degrees.values())
+                ]
             ),
             Features.parallelism: np.array(layer_gates),
             Features.cx_parallelism: np.array(cx_layer_gates),
             Features.t_parallelism: np.array(t_layer_gates),
             Features.mean_time_between_t: np.array(
                 [
-                    sum(v[:-1]) / len(v[:-1])
+                    (sum(v[:-1]) / len(v[:-1])) / len(self.qasm.layers)
                     for _, v in list(time_between_t.items())
                     if len(v) > 1
                 ]
