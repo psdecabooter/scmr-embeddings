@@ -9,5 +9,6 @@ wheels/
 # Virtual environments
 .venv
 
-out.csv
+out.*
 bench_suite/
+random_test/

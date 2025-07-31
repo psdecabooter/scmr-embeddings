@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from scmr_embed.embedding_types import parse_qasm
 from scmr_embed.feature_extractor import FeatureExtractor
+from random_qasm.qasm_generator import QasmGenerator
 
 
 def main():
@@ -52,6 +53,8 @@ def main():
     output_df = None
     for file_path, name in zip(qasm_file_paths, qasm_file_names):
         qasm = parse_qasm(file_path)
+        # qasm_gen = QasmGenerator(pd.DataFrame(),1,1)
+        # qasm_gen.save_qasm(qasm, path="out.qasm")
         extract_features = FeatureExtractor(qasm)
         features = extract_features.all_features()
         features_df = pd.DataFrame()
