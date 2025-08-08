@@ -12,3 +12,4 @@ wheels/
 out.*
 bench_suite/
 random_test/
+*.png

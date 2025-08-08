@@ -57,6 +57,7 @@ def main():
         # qasm_gen.save_qasm(qasm, path="out.qasm")
         extract_features = FeatureExtractor(qasm)
         features = extract_features.all_features()
+        # print(features)
         features_df = pd.DataFrame()
         features_df["file_name"] = [name]
         for feature, data in features.items():
